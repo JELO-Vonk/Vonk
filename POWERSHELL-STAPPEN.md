@@ -64,3 +64,13 @@ ruben@vonk.local / ChangeMe123!
 ## 11. Belangrijk
 - In deze batch zijn media nog URL-gebaseerd. Echte file-upload + opslag/CDN + moderatiepipeline kunnen we als volgende batch toevoegen.
 - Na een nieuwe zip of seed altijd opnieuw deze volgorde gebruiken: `npm install`, `prisma generate`, `prisma db push`, `npm run db:seed`, `npm run dev`.
+
+
+## Batch 7 live video testen
+Open twee browsers of één gewone browser + één incognito venster.
+Log in met twee verschillende demo-accounts.
+Ga in beide naar `/live`.
+Klik in beide vensters op `Start queue` en geef camera/microfoon toestemming.
+Wacht een paar seconden tot de live match verschijnt.
+Test daarna `Like`, `Next`, `Report` en `End`.
+Let op: deze batch gebruikt een dev-signalinglaag via polling en een publieke STUN-server. Voor productie is later een echte signaling service en TURN-server nodig.
