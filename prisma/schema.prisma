@@ -217,6 +217,8 @@ model User {
   dailyUsage             DailyUsage[]
   viewedProfiles         ProfileView[]       @relation("ViewerProfileViews")
   notifications          Notification[]
+  pushSubscriptions      PushSubscription[]
+  emailQueue             EmailQueue[]
 
   @@index([status])
   @@index([role])
@@ -325,6 +327,10 @@ model UserPreference {
   allowMen         Boolean   @default(true)
   allowWomen       Boolean   @default(true)
   allowNonBinary   Boolean   @default(true)
+  emailNewMatches  Boolean   @default(true)
+  emailNewMessages Boolean   @default(true)
+  pushNewMatches   Boolean   @default(false)
+  pushNewMessages  Boolean   @default(false)
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
@@ -623,4 +629,43 @@ model Notification {
 
   @@index([userId, createdAt])
   @@index([userId, readAt])
+}
+
+
+model PushSubscription {
+  id          String   @id @default(cuid())
+  userId      String
+  endpoint    String   @unique
+  p256dh      String
+  auth        String
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model EmailQueue {
+  id          String   @id @default(cuid())
+  userId      String?
+  toEmail     String
+  subject     String
+  htmlBody    String?  @db.Text
+  textBody    String?  @db.Text
+  status      String   @default("queued")
+  provider    String?
+  attempts    Int      @default(0)
+  sendAfter   DateTime @default(now())
+  sentAt      DateTime?
+  lastError   String?  @db.Text
+  metadataJson Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([status, sendAfter])
+  @@index([userId, createdAt])
 }

@@ -74,3 +74,16 @@ Klik in beide vensters op `Start queue` en geef camera/microfoon toestemming.
 Wacht een paar seconden tot de live match verschijnt.
 Test daarna `Like`, `Next`, `Report` en `End`.
 Let op: deze batch gebruikt een dev-signalinglaag via polling en een publieke STUN-server. Voor productie is later een echte signaling service en TURN-server nodig.
+
+
+## Batch 12 extra
+Na batch 12 kun je ook dit doen:
+
+```powershell
+# push/e-mail velden later invullen in .env
+notepad .env
+```
+
+Voor productie lees daarna ook:
+- `DEPLOY-VERCEL-SUPABASE.md`
+- `LAUNCH-CHECKLIST.md`

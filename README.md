@@ -18,3 +18,10 @@ Batch 2 toegevoegd:
 - premium gating op ontvangen likes
 - basis anti-spam en rate-limits via audit logs
 - verbeterde discover-feedback bij echte matches
+
+
+## Batch 12 additions
+- Browser push subscription basis
+- E-mail queue model in Prisma
+- Vercel + Supabase deploy handleiding
+- Launch checklist

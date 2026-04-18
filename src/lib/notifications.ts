@@ -42,3 +42,27 @@ export async function markNotificationsRead(userId: string, notificationIds?: st
     data: { readAt: new Date() }
   });
 }
+
+export async function enqueueNotificationEmail(input: {
+  userId?: string | null;
+  toEmail: string;
+  subject: string;
+  htmlBody?: string | null;
+  textBody?: string | null;
+  metadataJson?: Prisma.InputJsonValue;
+}) {
+  return prisma.emailQueue.create({
+    data: {
+      userId: input.userId ?? null,
+      toEmail: input.toEmail,
+      subject: input.subject,
+      htmlBody: input.htmlBody ?? null,
+      textBody: input.textBody ?? null,
+      metadataJson: input.metadataJson ?? undefined
+    }
+  });
+}
+
+export async function getNotificationPreferences(userId: string) {
+  return prisma.userPreference.findUnique({ where: { userId } });
+}
