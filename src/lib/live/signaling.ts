@@ -58,3 +58,8 @@ export function clearSignals(callId: string) {
   const store = getStore();
   store.byCallId.delete(callId);
 }
+
+
+export function getDemoSignalingPayload(callId: string) {
+  return { callId, issuedAt: Date.now() };
+}

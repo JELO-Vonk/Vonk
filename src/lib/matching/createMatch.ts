@@ -1,6 +1,7 @@
 import { MatchSource, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma/client";
 import { sortMatchPair } from "@/lib/matching/sortMatchPair";
+import { createNotificationTx } from "@/lib/notifications";
 
 export async function createMatchForUsers(
   tx: Prisma.TransactionClient,
@@ -30,6 +31,11 @@ export async function createMatchForUsers(
     update: {},
     create: { matchId: match.id }
   });
+
+  await Promise.all([
+    createNotificationTx(tx, userAId, "MATCH_CREATED", "Nieuwe match", "Jullie hebben elkaar geliket. Stuur een bericht om het gesprek te starten.", `/matches`),
+    createNotificationTx(tx, userBId, "MATCH_CREATED", "Nieuwe match", "Jullie hebben elkaar geliket. Stuur een bericht om het gesprek te starten.", `/matches`)
+  ]);
 
   return match;
 }

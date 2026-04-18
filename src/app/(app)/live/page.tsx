@@ -10,12 +10,12 @@ export default async function LivePage() {
     <div className="surface stack">
       <SectionTitle
         title="Live video roulette"
-        description="Batch 7: echte 2-browser WebRTC basis via polling-signaling, premium live limieten en direct door naar match/chat bij wederzijdse like."
+        description="Batch 8: TURN-ready WebRTC-config, reconnect-vriendelijke live status, premium live limieten en meldingen na match of chat."
       />
       <div className="row">
         <span className="badge">Plan: {plan}</span>
         <span className="badge">Free 5 / Gold 25 / Platinum onbeperkt</span>
-        <span className="badge">Dev STUN actief</span>
+        <span className="badge">TURN-ready config</span>
       </div>
       <LiveRoom currentUserId={user.id} currentPlan={plan} />
     </div>

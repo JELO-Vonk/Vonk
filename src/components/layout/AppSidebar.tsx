@@ -6,6 +6,7 @@ const links = [
   ["/likes", "Likes"],
   ["/matches", "Matches"],
   ["/chats", "Chats"],
+  ["/notifications", "Meldingen"],
   ["/live", "Live"],
   ["/premium", "Premium"],
   ["/settings", "Instellingen"]

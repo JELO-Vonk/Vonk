@@ -157,3 +157,15 @@ export async function leaveVideoQueue(sessionId: string, userId: string) {
     }
   });
 }
+
+
+export async function getQueueSessionStatus(sessionId: string, userId: string) {
+  const [session, status] = await Promise.all([
+    prisma.videoQueueSession.findFirst({ where: { id: sessionId, userId } }),
+    getLiveStatusForUser(userId)
+  ]);
+  return {
+    session: session ? { id: session.id, status: session.status } : null,
+    call: status.call
+  };
+}

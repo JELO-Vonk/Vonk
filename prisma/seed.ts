@@ -270,6 +270,8 @@ async function main() {
     await prisma.chat.update({ where: { id: chatId }, data: { lastMessageAt: new Date() } });
   }
 
+  await seedNotifications();
+
   console.log("Seed voltooid.");
   console.log("Admin: admin@vonk.local / ChangeMe123!");
   console.log("Demo: demo@vonk.local / ChangeMe123!");
@@ -284,3 +286,19 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+
+
+async function seedNotifications() {
+  const users = await prisma.user.findMany({ take: 3, orderBy: { createdAt: "asc" } });
+  for (const user of users) {
+    await prisma.notification.create({
+      data: {
+        userId: user.id,
+        type: "SYSTEM",
+        title: "Welkom bij Vonk",
+        body: "Je meldingen verschijnen hier zodra je matches of berichten ontvangt.",
+        href: "/notifications"
+      }
+    });
+  }
+}

@@ -35,14 +35,29 @@ export function LiveRoom({ currentUserId, currentPlan }: Props) {
   const signalRef = useRef<number | null>(null);
   const lastSignalIdRef = useRef(0);
   const setupCallIdRef = useRef<string | null>(null);
+  const iceServersRef = useRef<RTCIceServer[]>([{ urls: ["stun:stun.l.google.com:19302"] }]);
 
   const [statusText, setStatusText] = useState("Klaar om live te gaan.");
   const [queueSessionId, setQueueSessionId] = useState<string | null>(null);
   const [call, setCall] = useState<LiveStatusResponse["call"]>(null);
   const [cameraReady, setCameraReady] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
+  const [connectionState, setConnectionState] = useState("new");
 
   const hasActiveCall = Boolean(call?.id);
+
+  const loadWebrtcConfig = useCallback(async () => {
+    try {
+      const response = await fetch("/api/live/webrtc-config", { cache: "no-store" });
+      if (!response.ok) return;
+      const data = await response.json();
+      if (Array.isArray(data.iceServers) && data.iceServers.length) {
+        iceServersRef.current = data.iceServers;
+      }
+    } catch {
+      // keep default STUN config
+    }
+  }, []);
 
   const startLocalPreview = useCallback(async () => {
     if (localStreamRef.current) return localStreamRef.current;
@@ -98,7 +113,7 @@ export function LiveRoom({ currentUserId, currentPlan }: Props) {
     }
 
     const pc = new RTCPeerConnection({
-      iceServers: [{ urls: ["stun:stun.l.google.com:19302"] }]
+      iceServers: iceServersRef.current
     });
     peerRef.current = pc;
     setupCallIdRef.current = activeCall.id;
@@ -107,6 +122,19 @@ export function LiveRoom({ currentUserId, currentPlan }: Props) {
 
     pc.ontrack = (event) => {
       event.streams[0]?.getTracks().forEach((track) => remoteStream.addTrack(track));
+    };
+
+    pc.onconnectionstatechange = () => {
+      const state = pc.connectionState;
+      setConnectionState(state);
+      if (state === "failed" || state === "disconnected") {
+        setStatusText("Verbinding hapert. Opnieuw verbinden...");
+        destroyPeer();
+        setupCallIdRef.current = null;
+      }
+      if (state === "connected") {
+        setStatusText("Verbonden. Zeg hallo 👋");
+      }
     };
 
     pc.onicecandidate = (event) => {
@@ -183,9 +211,11 @@ export function LiveRoom({ currentUserId, currentPlan }: Props) {
   }, [destroyPeer, ensurePeerConnection]);
 
   useEffect(() => {
+    void loadWebrtcConfig();
     void refreshStatus();
     pollRef.current = window.setInterval(() => {
-      void refreshStatus();
+      void loadWebrtcConfig();
+    void refreshStatus();
     }, 2000);
 
     return () => {
@@ -197,7 +227,7 @@ export function LiveRoom({ currentUserId, currentPlan }: Props) {
         localStreamRef.current = null;
       }
     };
-  }, [destroyPeer, refreshStatus]);
+  }, [destroyPeer, loadWebrtcConfig, refreshStatus]);
 
   useEffect(() => {
     if (!call?.id) {
@@ -312,6 +342,7 @@ export function LiveRoom({ currentUserId, currentPlan }: Props) {
         <div className="stack" style={{ gap: 8 }}>
           <strong>{peerLabel}</strong>
           <span className="muted">{statusText}</span>
+          <span className="muted">RTC: {connectionState}</span>
           {call?.peer?.profileId ? <a className="badge" href={`/discover/${call.peer.profileId}`}>Bekijk profiel</a> : null}
         </div>
         <div className="row">

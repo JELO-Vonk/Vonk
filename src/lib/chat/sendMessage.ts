@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma/client";
 import { assertRecentActionWithinLimit, recordAction } from "@/lib/moderation/rateLimit";
 import { looksLikeSpam } from "@/lib/moderation/spamDetection";
+import { createNotificationTx } from "@/lib/notifications";
 
 export async function sendTextMessage(chatId: string, senderUserId: string, body: string) {
   const cleanBody = body.trim();
@@ -9,6 +10,9 @@ export async function sendTextMessage(chatId: string, senderUserId: string, body
   }
 
   return prisma.$transaction(async (tx) => {
+    const chat = await tx.chat.findUnique({ where: { id: chatId }, include: { match: true } });
+    if (!chat) throw new Error("Chat niet gevonden.");
+
     const message = await tx.chatMessage.create({
       data: {
         chatId,
@@ -22,6 +26,9 @@ export async function sendTextMessage(chatId: string, senderUserId: string, body
       where: { id: chatId },
       data: { lastMessageAt: message.createdAt }
     });
+
+    const recipientUserId = chat.match.userAId === senderUserId ? chat.match.userBId : chat.match.userAId;
+    await createNotificationTx(tx, recipientUserId, "MESSAGE_RECEIVED", "Nieuw bericht", cleanBody.slice(0, 120), `/chats/${chatId}`, { chatId, senderUserId });
 
     return message;
   });

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma/client";
 import { getOrCreateMatchForUsers } from "@/lib/matching/createMatch";
+import { createNotification } from "@/lib/notifications";
 
 type Props = { params: Promise<{ callId: string }> };
 
@@ -23,10 +24,19 @@ export async function POST(_: Request, { params }: Props) {
   });
 
   let matchId: string | null = null;
+  const otherUserId = isCaller ? updated.calleeUserId : updated.callerUserId;
   if ((isCaller ? updated.calleeLiked : updated.callerLiked) || (updated.callerLiked && updated.calleeLiked)) {
     const match = await getOrCreateMatchForUsers(updated.callerUserId, updated.calleeUserId, "VIDEO");
     await prisma.videoCall.update({ where: { id: updated.id }, data: { mutualLike: true } });
+    await Promise.all([
+      createNotification(updated.callerUserId, "LIVE_MATCH", "Live match gelukt", "Jullie hebben elkaar live geliket.", `/matches`),
+      createNotification(updated.calleeUserId, "LIVE_MATCH", "Live match gelukt", "Jullie hebben elkaar live geliket.", `/matches`)
+    ]);
     matchId = match.id;
+  }
+
+  if (!matchId) {
+    await createNotification(otherUserId, "LIKE_RECEIVED", "Live like ontvangen", "Iemand uit live video heeft je geliket.", "/live");
   }
 
   return NextResponse.json({ ok: true, action: "like", callId, matchId });
